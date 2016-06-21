@@ -8,7 +8,6 @@
 
 #include <iostream>
 #include <stdio.h>
-//#include "quene"
 #include "vector"
 #include <time.h>
 #include <stdlib.h>
@@ -22,6 +21,7 @@ typedef struct Node{    /* 定义单链表结点类型 */
     struct Node *s2;
     struct Node *s3;
     struct Node *s4;
+    struct Node *s[11];
 } Node;
 
 int i = 0;
@@ -104,65 +104,92 @@ void pushup4(Node *p)
 }
 
 //创建多分支线段树
+int branchnum = 10;
 void CreateTree(int l ,int r , Node *tp, float x[])
 {
+    int i = 1;
+    int ll = l;
+    int rr = r;
     tp->L = l;
     tp->R = r;
-    int seg = (r - l) / 4;//段长
-    int flag = r - l;
+    int seg = (r - l) / branchnum;//段长
+    int flag = 0;
     
-    if(l == r)
+    if(ll == rr)
     {
-        tp->L = l;
-        tp->R = r;
-        tp->maxi = tp->lmaxi = tp->rmaxi = tp->sum = x[l];
+        tp->L = ll;
+        tp->R = rr;
+        tp->maxi = tp->lmaxi = tp->rmaxi = tp->sum = x[ll];
         return;
     }
-    if(flag == 3 || flag > 4)
-    {
-        tp->s1 = (Node *)malloc(sizeof(Node)); //申请s1
-        CreateTree(l, l + seg,tp->s1,x);
-        tp->s2 = (Node *)malloc(sizeof(Node)); //申请s2
-        CreateTree(l + seg + 1, l + 2 * seg + 1,tp->s2,x);
-        tp->s3 = (Node *)malloc(sizeof(Node)); //申请s3
-        CreateTree(l + 2 * seg + 2, l + 3 * seg + 2,tp->s3,x);
-        tp->s4 = (Node *)malloc(sizeof(Node)); //申请s4
-        CreateTree(l + 3 * seg + 3, r, tp->s4,x);
-        pushup4(tp);
-    }
-    if (flag == 4)
-    {
-        tp->s1 = (Node *)malloc(sizeof(Node)); //申请s1
-        CreateTree(l, l+1, tp->s1,x);
-        tp->s2 = (Node *)malloc(sizeof(Node)); //申请s2
-        CreateTree(l + 2, l + 3, tp->s2,x);
-        tp->s3 = (Node *)malloc(sizeof(Node)); //申请s3
-        CreateTree(l + 4, l + 4, tp->s3,x);
-        tp->s4 = NULL;
-        pushup3(tp);
-    }
-    if (flag == 2)
-    {
-        tp->s1 = (Node *)malloc(sizeof(Node)); //申请s1
-        CreateTree(l, l, tp->s1,x);
-        tp->s2 = (Node *)malloc(sizeof(Node)); //申请s2
-        CreateTree(l + 1, l + 1, tp->s2,x);
-        tp->s3 = (Node *)malloc(sizeof(Node)); //申请s3
-        CreateTree(l + 2, l + 2, tp->s3,x);
-        tp->s4 = NULL;
-        pushup3(tp);
-    }
-    if (flag == 1)
-    {
-        tp->s1 = (Node *)malloc(sizeof(Node)); //申请s1
-        CreateTree(l, l, tp->s1,x);
-        tp->s2 = (Node *)malloc(sizeof(Node)); //申请s2
-        CreateTree(l + 1, l + 1, tp->s2,x);
-        tp->s3 = NULL;
-        tp->s4 = NULL;
-        pushup2(tp);
-    }
     
+    for (i ; i < branchnum + 1; ++i)
+    {
+        seg = (r - l) / branchnum;
+        if (ll > r || flag == 1)
+        {
+            break;
+        }
+        else if (ll + seg > r && ll < r + 1)
+        {
+            tp->s[i] = (Node *)malloc(sizeof(Node));  //申请节点
+            CreateTree(ll, r,tp->s[i],x);              //创建节点
+            flag = 1;                                 //quit for
+        }
+        else
+        {
+            tp->s[i] = (Node *)malloc(sizeof(Node));  //申请节点
+            CreateTree(ll, ll + seg,tp->s[i],x);        //创建节点
+            ll = ll + seg + 1;
+            rr = ll + seg ;
+        }
+        
+    }
+//    if(flag == 3 || flag > 4)
+//    {
+//        tp->s1 = (Node *)malloc(sizeof(Node)); //申请s1
+//        CreateTree(l, l + seg,tp->s1,x);
+//        tp->s2 = (Node *)malloc(sizeof(Node)); //申请s2
+//        CreateTree(l + seg + 1, l + 2 * seg + 1,tp->s2,x);
+//        tp->s3 = (Node *)malloc(sizeof(Node)); //申请s3
+//        CreateTree(l + 2 * seg + 2, l + 3 * seg + 2,tp->s3,x);
+//        tp->s4 = (Node *)malloc(sizeof(Node)); //申请s4
+//        CreateTree(l + 3 * seg + 3, r, tp->s4,x);
+//        pushup4(tp);
+//    }
+//    if (flag == 4)
+//    {
+//        tp->s1 = (Node *)malloc(sizeof(Node)); //申请s1
+//        CreateTree(l, l+1, tp->s1,x);
+//        tp->s2 = (Node *)malloc(sizeof(Node)); //申请s2
+//        CreateTree(l + 2, l + 3, tp->s2,x);
+//        tp->s3 = (Node *)malloc(sizeof(Node)); //申请s3
+//        CreateTree(l + 4, l + 4, tp->s3,x);
+//        tp->s4 = NULL;
+//        pushup3(tp);
+//    }
+//    if (flag == 2)
+//    {
+//        tp->s1 = (Node *)malloc(sizeof(Node)); //申请s1
+//        CreateTree(l, l, tp->s1,x);
+//        tp->s2 = (Node *)malloc(sizeof(Node)); //申请s2
+//        CreateTree(l + 1, l + 1, tp->s2,x);
+//        tp->s3 = (Node *)malloc(sizeof(Node)); //申请s3
+//        CreateTree(l + 2, l + 2, tp->s3,x);
+//        tp->s4 = NULL;
+//        pushup3(tp);
+//    }
+//    if (flag == 1)
+//    {
+//        tp->s1 = (Node *)malloc(sizeof(Node)); //申请s1
+//        CreateTree(l, l, tp->s1,x);
+//        tp->s2 = (Node *)malloc(sizeof(Node)); //申请s2
+//        CreateTree(l + 1, l + 1, tp->s2,x);
+//        tp->s3 = NULL;
+//        tp->s4 = NULL;
+//        pushup2(tp);
+//    }
+//    
     
 }
 
@@ -456,7 +483,7 @@ int main(int argc, const char * argv[]) {
     float *p;
     p = ReadDate("/Users/zph/XcodeProject/编程珠玑/SegTreeMaxSub/SegTreeMaxSub/100.txt");
     printf("一共%d个数据\n",i);
-    CreateTree(1 , i , RootNode, p);
+    CreateTree(1 , 100, RootNode, p);
     LevelTra4(RootNode);
     //Node *res = query(1, i, 1,19000  , RootNode,0);
     //printf("maxsub sum is :%d\n",res->maxi);
