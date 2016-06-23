@@ -58,6 +58,34 @@ int max(int a, int b)
     return a>b?a:b;
 }
 
+//合并多个分支
+void pushup(Node *p,int n)
+{
+    int psum=0,pmaxi=0,plmaxi=0,prmaxi=0;
+    for (int i = 1; i < n; i++)
+    {
+        if (i == 1)
+        {
+            p->sum = p->s[1]->sum + p->s[2]->sum;
+            p->maxi = max(p->s[1]->maxi,max(p->s[2]->maxi,p->s[1]->rmaxi+p->s[2]->lmaxi));
+            p->lmaxi = max(p->s[1]->lmaxi,p->s[1]->sum + p->s[2]->lmaxi);
+            p->rmaxi = max(p->s[2]->rmaxi,p->s[2]->sum + p->s[1]->rmaxi);
+            psum=p->sum ,pmaxi=p->maxi,plmaxi=p->lmaxi,prmaxi=p->rmaxi;
+        }
+        else if(i > 1)
+        {
+            int m = i + 1;
+            p->sum = psum + p->s[i]->sum;
+            p->maxi = max(pmaxi,max(p->s[i]->maxi,prmaxi+p->s[i]->lmaxi));
+            p->lmaxi = max(plmaxi,psum + p->s[i]->lmaxi);
+            p->rmaxi = max(p->s[i]->rmaxi,p->s[i]->sum + prmaxi);
+            psum=p->sum ,pmaxi=p->maxi,plmaxi=p->lmaxi,prmaxi=p->rmaxi;
+        }
+        
+    }
+    
+}
+
 //合并两个分支
 void pushup2(Node *p)
 {
