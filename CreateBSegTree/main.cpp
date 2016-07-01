@@ -272,13 +272,47 @@ Node *ChangePointer(Node *tp,int snum)
     if(snum == 4)  p = tp -> s4;
     return p;
 }
-
+int InterNum(int x,Node *p)
+{
+    int m = 0;
+    for(int i = 0;p->s[i]!=NULL; i++)
+    {
+        m = i;
+    }
+    return m;
+}
+Node *queryx(int l,int r,int aa,int bb, Node *tp,int num)
+{
+    tp = tp -> s[num];
+    Node *ka, *kb, *k[100],*res;
+    res = (Node *)malloc(sizeof(Node));
+    if(aa <= l && bb >= r)
+        return tp;
+    int ll = 0;
+    int rr = 0;
+    ll = InterNum(aa, tp);
+    rr = InterNum(bb, tp);
+    if(ll == rr)
+    {
+        ka = queryx(tp -> s[ll] ->L,tp -> s[rr]->R, aa, bb, tp, ll);
+    }
+    if(ll < rr)
+    {
+        ka = queryx(tp -> s[ll] ->L,tp -> s[ll] ->R, aa, bb, tp, ll);//lefmost point
+        int i = 1;
+        while (ll < rr)
+        {
+            queryx(tp -> s[ll+i] ->L,tp -> s[ll+i] ->R, aa, bb, tp, ll);
+            i++;
+        }
+        kb = queryx(tp -> s[rr] ->L,tp -> s[rr] ->R, aa, bb, tp, rr);//rightmost point
+        
+    }
+    return res;
+}
 Node *query(int l,int r,int aa,int bb, Node *tp,int num)
 {
-    if(num ==1) tp = tp -> s1;
-    else if(num==2) tp = tp -> s2;
-    else if(num==3) tp = tp -> s3;
-    else if(num==4) tp = tp -> s4;
+    tp = tp -> s[num];
     Node *ka,*kb,*res;
     res = (Node *)malloc(sizeof(Node));
     if(aa <= l && bb >= r)
