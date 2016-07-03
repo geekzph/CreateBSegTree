@@ -1,6 +1,6 @@
 //
 //  main.cpp
-//  CreateBSegTree
+//  multi-branch segment tree
 //
 //  Created by zph on 16/5/29.
 //  Copyright © 2016年 zph. All rights reserved.
@@ -13,22 +13,23 @@
 #include <stdlib.h>
 using namespace std;
 
-const int kBranchNum = 4; //branch number
-typedef struct Node{    //Node structure
+const int kBranchNum = 4;                   //const branch number
+typedef struct Node{                         //Node structure
     int l;
     int r;
+    int branch;
     int maxi,lmaxi,rmaxi,sum;
     struct Node *s[kBranchNum+1];
 } Node;
 
-typedef struct Kp{    //define pointer structer
+typedef struct Kp{                          //pointer structer
     struct Node *s[kBranchNum+1];
 } Kp;
 
-int i = 0;
+int g_data_num = 0;                         //file data number
 float * ReadDate(char filename[])
 {
-    i = 0;
+    g_data_num = 0;
     float r[20000];
     FILE *fp;
     double result = 0.0;
@@ -40,25 +41,25 @@ float * ReadDate(char filename[])
     }
     while (!feof(fp))
     {
-        fgets(strline,12,fp);  //read a line
-        //printf("%s", strline);
+        fgets(strline,12,fp);               //read a line
         result=atof(strline);
-        i++;
-        r[i] =result;
+        g_data_num++;
+        r[g_data_num] =result;
         
         
     }
-    fclose(fp);              //close file
+    fclose(fp);                             //close file
     printf("success\n");
     return r;
 }
 
+//max value
 int max(int a, int b)
 {
     return a>b?a:b;
 }
 
-//merge multi-branch in CreateTree
+//merge branch in CreateTree
 void MergeBranchInC(Node *p,int n)
 {
     int psum=0,pmaxi=0,plmaxi=0,prmaxi=0;
@@ -88,12 +89,12 @@ void MergeBranchInC(Node *p,int n)
 
 
 
-//merge branch in query funcution
-//query funtion's merge procedure is different from createtree's merge procedure
+//merge branch in QuerySeg funcution
+//QuerySeg funtion's merge procedure is different from CreateTree funtion merge procedure
 Node *MergeBranchInQ(Node *p, Kp *k, Node *q, int n)
 {
     Node *res = (Node *)malloc(sizeof(Node));
-    
+        //only two branch to merge
     if(n ==1 )
     {
         res->sum = p->sum + q->sum;
@@ -174,34 +175,36 @@ void CreateTree(int l ,int r , Node *tp, float x[])
             ll = ll + seg + 1;
             rr = ll + seg ;
         }
-        
+        tp -> branch = i;
     }
     MergeBranchInC(tp, i - 1);
 }
 
+//calculate pointer number
 int IntervalNum(int x,Node *p)
 {
     int m = 0;
-    for(int i = 1;p->s[i]!=NULL && i <= kBranchNum; i++)
+    for(int i = 1;i <= p->branch; i++)
     {
         if (x >= p->s[i]->l && x <= p->s[i]->r) m = i;
     }
     return m;
 }
 
+//query segment from aa to bb's maxsub sum
 Node *QuerySeg(int l,int r,int aa,int bb, Node *tp,int num)
 {
-    int flag1 = 0;
-    int flag2 = 0;
-    if(num != 0) tp = tp -> s[num];
+    int flag1 = 0;                        //only one branch
+    int flag2 = 0;                        //if should merge branch
+    if(num != 0) tp = tp -> s[num];       //change pointer
     Node *ka, *kl, *kr, *res, *res1;
-    Kp *k = (Kp *)malloc(sizeof(Kp));
+    Kp *k = (Kp *)malloc(sizeof(Kp));     //multi-branch's pointer
     res = (Node *)malloc(sizeof(Node));
     if(aa <= l && bb >= r)
         return tp;
     int ll = 0;
     int rr = 0;
-    ll = IntervalNum(aa, tp);
+    ll = IntervalNum(aa, tp);             //calculate pointer number
     rr = IntervalNum(bb, tp);
     if(ll == rr)
     {
@@ -304,17 +307,16 @@ Node *QuerySeg(int l,int r,int aa,int bb, Node *tp,int num)
 //        cout<<endl;
 //    }
 //}
-Node *rootnode = (Node *)malloc(sizeof(Node)); //apply for root node
 
+
+Node *rootnode = (Node *)malloc(sizeof(Node)); //apply for root node
 int main(int argc, const char * argv[]) {
-    // insert code here...
-    //int n = IntervalNum(0, 25, 4, 25);
     float *p;
-    p = ReadDate("/Users/zph/XcodeProject/编程珠玑/SegTreeMaxSub/SegTreeMaxSub/data.txt");
-    printf("total data is %d\n",i);
-    CreateTree(1, i, rootnode, p);
+    p = ReadDate("/Users/zph/XcodeProject/编程珠玑/SegTreeMaxSub/SegTreeMaxSub/100.txt");
+    printf("total data is %d\n",g_data_num);
+    CreateTree(1, 25, rootnode, p);
     //LevelTra4(RootNode);
-    Node *res = QuerySeg(1, i, 123, 1000, rootnode, 0);
+    Node *res = QuerySeg(1, 25, 3, 6, rootnode, 0);
     printf("maxsub sum is :%d\n",res->maxi);
     return 0;
 }
