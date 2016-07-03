@@ -13,16 +13,17 @@
 #include <stdlib.h>
 using namespace std;
 
+const int branchnum = 10; //branch number
 typedef struct Node{    /* 定义单链表结点类型 */
     int L;
     int R;
     int maxi,lmaxi,rmaxi,sum;
-    struct Node *s1;
-    struct Node *s2;
-    struct Node *s3;
-    struct Node *s4;
-    struct Node *s[11];
+    struct Node *s[branchnum+1];
 } Node;
+
+typedef struct Kp{    //define pointer structer
+    struct Node *s[branchnum+1];
+} Kp;
 
 int i = 0;
 float * ReadDate(char filename[])
@@ -75,10 +76,10 @@ void pushup(Node *p,int n)
         else if(i > 1)
         {
             int m = i + 1;
-            p->sum = psum + p->s[i]->sum;
-            p->maxi = max(pmaxi,max(p->s[i]->maxi,prmaxi+p->s[i]->lmaxi));
-            p->lmaxi = max(plmaxi,psum + p->s[i]->lmaxi);
-            p->rmaxi = max(p->s[i]->rmaxi,p->s[i]->sum + prmaxi);
+            p->sum = psum + p->s[m]->sum;
+            p->maxi = max(pmaxi,max(p->s[m]->maxi,prmaxi+p->s[m]->lmaxi));
+            p->lmaxi = max(plmaxi,psum + p->s[m]->lmaxi);
+            p->rmaxi = max(p->s[m]->rmaxi,p->s[m]->sum + prmaxi);
             psum=p->sum ,pmaxi=p->maxi,plmaxi=p->lmaxi,prmaxi=p->rmaxi;
         }
         
@@ -86,53 +87,129 @@ void pushup(Node *p,int n)
     
 }
 
-//合并两个分支
-void pushup2(Node *p)
+//merge branch in createtree function
+Node *MergeBranch(Node *p,int n)
 {
-    p->sum = p->s1->sum + p->s2->sum;
-    p->maxi = max(p->s1->maxi,max(p->s2->maxi,p->s1->rmaxi+p->s2->lmaxi));
-    p->lmaxi = max(p->s1->lmaxi,p->s1->sum + p->s2->lmaxi);
-    p->rmaxi = max(p->s2->rmaxi,p->s2->sum + p->s1->rmaxi);
+    int psum=0,pmaxi=0,plmaxi=0,prmaxi=0;
+    for (int i = 1; i < n; i++)
+    {
+        if (i == 1)
+        {
+            p->sum = p->s[1]->sum + p->s[2]->sum;
+            p->maxi = max(p->s[1]->maxi,max(p->s[2]->maxi,p->s[1]->rmaxi+p->s[2]->lmaxi));
+            p->lmaxi = max(p->s[1]->lmaxi,p->s[1]->sum + p->s[2]->lmaxi);
+            p->rmaxi = max(p->s[2]->rmaxi,p->s[2]->sum + p->s[1]->rmaxi);
+            psum=p->sum ,pmaxi=p->maxi,plmaxi=p->lmaxi,prmaxi=p->rmaxi;
+        }
+        else if(i > 1)
+        {
+            int m = i + 1;
+            p->sum = psum + p->s[m]->sum;
+            p->maxi = max(pmaxi,max(p->s[m]->maxi,prmaxi+p->s[m]->lmaxi));
+            p->lmaxi = max(plmaxi,psum + p->s[m]->lmaxi);
+            p->rmaxi = max(p->s[m]->rmaxi,p->s[m]->sum + prmaxi);
+            psum=p->sum ,pmaxi=p->maxi,plmaxi=p->lmaxi,prmaxi=p->rmaxi;
+        }
+        
+    }
+    return p;
+    
 }
-//合并三个分支
-void pushup3(Node *p)
-{
-    p->sum = p->s1->sum + p->s2->sum;
-    p->maxi = max(p->s1->maxi,max(p->s2->maxi,p->s1->rmaxi+p->s2->lmaxi));
-    p->lmaxi = max(p->s1->lmaxi,p->s1->sum + p->s2->lmaxi);
-    p->rmaxi = max(p->s2->rmaxi,p->s2->sum + p->s1->rmaxi);
-    
-    int psum=p->sum ,pmaxi=p->maxi,plmaxi=p->lmaxi,prmaxi=p->rmaxi;
-    p->sum = psum + p->s3->sum;
-    p->maxi = max(pmaxi,max(p->s3->maxi,prmaxi+p->s3->lmaxi));
-    p->lmaxi = max(plmaxi,psum + p->s3->lmaxi);
-    p->rmaxi = max(p->s3->rmaxi,p->s3->sum + prmaxi);
-}
-//合并四个分支
-void pushup4(Node *p)
-{
-    p->sum = p->s1->sum + p->s2->sum;
-    p->maxi = max(p->s1->maxi,max(p->s2->maxi,p->s1->rmaxi+p->s2->lmaxi));
-    p->lmaxi = max(p->s1->lmaxi,p->s1->sum + p->s2->lmaxi);
-    p->rmaxi = max(p->s2->rmaxi,p->s2->sum + p->s1->rmaxi);
-    
-    int psum=p->sum ,pmaxi=p->maxi,plmaxi=p->lmaxi,prmaxi=p->rmaxi;
-    p->sum = psum + p->s3->sum;
-    p->maxi = max(pmaxi,max(p->s3->maxi,prmaxi+p->s3->lmaxi));
-    p->lmaxi = max(plmaxi,psum + p->s3->lmaxi);
-    p->rmaxi = max(p->s3->rmaxi,p->s3->sum + prmaxi);
-    
-    psum=p->sum ,pmaxi=p->maxi,plmaxi=p->lmaxi,prmaxi=p->rmaxi;
-    p->sum = psum + p->s4->sum;
-    p->maxi = max(pmaxi,max(p->s4->maxi,prmaxi+p->s4->lmaxi));
-    p->lmaxi = max(plmaxi,psum + p->s4->lmaxi);
-    p->rmaxi = max(p->s4->rmaxi,p->s4->sum + prmaxi);
 
+//merge branch in query funcution
+//query funtion's merge procedure is different from createtree's merge procedure
+Node *MergeBranchInQ(Node *p, Kp *k, Node *q, int n)
+{
+    Node *res = (Node *)malloc(sizeof(Node));
+    
+    if(n ==1 )
+    {
+        res->sum = p->sum + q->sum;
+        res->lmaxi = max(p->lmaxi,p->sum + q->lmaxi);
+        res->rmaxi = max(q->rmaxi,q->sum + p->rmaxi);
+        res->maxi = max(p->rmaxi+q->lmaxi,max(p->maxi,q->maxi));
+        return res;
 
+    }
+    else
+    {
+        int psum=0,pmaxi=0,plmaxi=0,prmaxi=0;
+        for (int i = 1; i < n; i++)
+        {
+            if (i == 1)
+            {
+                res->sum = p->sum + k->s[1]->sum;
+                res->lmaxi = max(p->lmaxi,p->sum + k->s[1]->lmaxi);
+                res->rmaxi = max(k->s[1]->rmaxi,k->s[1]->sum + p->rmaxi);
+                res->maxi = max(p->rmaxi+k->s[1]->lmaxi,max(p->maxi,k->s[1]->maxi));
+                psum=res->sum ,pmaxi=res->maxi,plmaxi=res->lmaxi,prmaxi=res->rmaxi;
+            }
+            else if(i > 1)
+            {
+                res->sum = psum + k->s[i]->sum;
+                res->lmaxi = max(plmaxi,psum + k->s[i]->lmaxi);
+                res->rmaxi = max(k->s[i]->rmaxi,k->s[i]->sum + prmaxi);
+                res->maxi = max(prmaxi+k->s[i]->lmaxi,max(pmaxi,k->s[i]->maxi));
+                psum=res->sum ,pmaxi=res->maxi,plmaxi=res->lmaxi,prmaxi=res->rmaxi;
+            }
+            
+        }
+        res->sum = psum + q->sum;
+        res->lmaxi = max(plmaxi,psum + q->lmaxi);
+        res->rmaxi = max(q->rmaxi,q->sum + prmaxi);
+        res->maxi = max(prmaxi+q->lmaxi,max(pmaxi,q->maxi));
+        return res;
+    }
+    
 }
+
+////合并两个分支
+//void pushup2(Node *p)
+//{
+//    p->sum = p->s1->sum + p->s2->sum;
+//    p->maxi = max(p->s1->maxi,max(p->s2->maxi,p->s1->rmaxi+p->s2->lmaxi));
+//    p->lmaxi = max(p->s1->lmaxi,p->s1->sum + p->s2->lmaxi);
+//    p->rmaxi = max(p->s2->rmaxi,p->s2->sum + p->s1->rmaxi);
+//}
+////合并三个分支
+//void pushup3(Node *p)
+//{
+//    p->sum = p->s1->sum + p->s2->sum;
+//    p->maxi = max(p->s1->maxi,max(p->s2->maxi,p->s1->rmaxi+p->s2->lmaxi));
+//    p->lmaxi = max(p->s1->lmaxi,p->s1->sum + p->s2->lmaxi);
+//    p->rmaxi = max(p->s2->rmaxi,p->s2->sum + p->s1->rmaxi);
+//    
+//    int psum=p->sum ,pmaxi=p->maxi,plmaxi=p->lmaxi,prmaxi=p->rmaxi;
+//    p->sum = psum + p->s3->sum;
+//    p->maxi = max(pmaxi,max(p->s3->maxi,prmaxi+p->s3->lmaxi));
+//    p->lmaxi = max(plmaxi,psum + p->s3->lmaxi);
+//    p->rmaxi = max(p->s3->rmaxi,p->s3->sum + prmaxi);
+//}
+////合并四个分支
+//void pushup4(Node *p)
+//{
+//    p->sum = p->s1->sum + p->s2->sum;
+//    p->maxi = max(p->s1->maxi,max(p->s2->maxi,p->s1->rmaxi+p->s2->lmaxi));
+//    p->lmaxi = max(p->s1->lmaxi,p->s1->sum + p->s2->lmaxi);
+//    p->rmaxi = max(p->s2->rmaxi,p->s2->sum + p->s1->rmaxi);
+//    
+//    int psum=p->sum ,pmaxi=p->maxi,plmaxi=p->lmaxi,prmaxi=p->rmaxi;
+//    p->sum = psum + p->s3->sum;
+//    p->maxi = max(pmaxi,max(p->s3->maxi,prmaxi+p->s3->lmaxi));
+//    p->lmaxi = max(plmaxi,psum + p->s3->lmaxi);
+//    p->rmaxi = max(p->s3->rmaxi,p->s3->sum + prmaxi);
+//    
+//    psum=p->sum ,pmaxi=p->maxi,plmaxi=p->lmaxi,prmaxi=p->rmaxi;
+//    p->sum = psum + p->s4->sum;
+//    p->maxi = max(pmaxi,max(p->s4->maxi,prmaxi+p->s4->lmaxi));
+//    p->lmaxi = max(plmaxi,psum + p->s4->lmaxi);
+//    p->rmaxi = max(p->s4->rmaxi,p->s4->sum + prmaxi);
+//
+//
+//}
 
 //创建多分支线段树
-int branchnum = 10;
+
 void CreateTree(int l ,int r , Node *tp, float x[])
 {
     int i = 1;
@@ -173,6 +250,8 @@ void CreateTree(int l ,int r , Node *tp, float x[])
         }
         
     }
+    pushup(tp, i - 1);
+
 //    if(flag == 3 || flag > 4)
 //    {
 //        tp->s1 = (Node *)malloc(sizeof(Node)); //申请s1
@@ -263,28 +342,33 @@ int IntervalNum(int l,int r,int n,int num)
         return -1;
 }
 
-Node *ChangePointer(Node *tp,int snum)
-{
-    Node *p = NULL;
-    if(snum == 1)  p = tp -> s1;
-    if(snum == 2)  p = tp -> s2;
-    if(snum == 3)  p = tp -> s3;
-    if(snum == 4)  p = tp -> s4;
-    return p;
-}
+//Node *ChangePointer(Node *tp,int snum)
+//{
+//    Node *p = NULL;
+//    if(snum == 1)  p = tp -> s1;
+//    if(snum == 2)  p = tp -> s2;
+//    if(snum == 3)  p = tp -> s3;
+//    if(snum == 4)  p = tp -> s4;
+//    return p;
+//}
+
 int InterNum(int x,Node *p)
 {
     int m = 0;
-    for(int i = 0;p->s[i]!=NULL; i++)
+    for(int i = 1;p->s[i]!=NULL && i <= branchnum; i++)
     {
-        m = i;
+        if (x >= p->s[i]->L && x <= p->s[i]->R) m = i;
     }
     return m;
 }
+
 Node *queryx(int l,int r,int aa,int bb, Node *tp,int num)
 {
-    tp = tp -> s[num];
-    Node *ka, *kb, *k[100],*res;
+    int flag1 = 0;
+    int flag2 = 0;
+    if(num != 0) tp = tp -> s[num];
+    Node *ka, *kl, *kr, *res, *res1;
+    Kp *k = (Kp *)malloc(sizeof(Kp));
     res = (Node *)malloc(sizeof(Node));
     if(aa <= l && bb >= r)
         return tp;
@@ -294,183 +378,201 @@ Node *queryx(int l,int r,int aa,int bb, Node *tp,int num)
     rr = InterNum(bb, tp);
     if(ll == rr)
     {
-        ka = queryx(tp -> s[ll] ->L,tp -> s[rr]->R, aa, bb, tp, ll);
+        if(tp -> s[rr] -> R < bb)
+            ka = queryx(tp -> s[ll] ->L,tp -> s[rr]->R, aa, tp -> s[rr]->R, tp, ll);
+        else
+            ka = queryx(tp -> s[ll] ->L,tp -> s[rr]->R, aa, bb, tp, ll);
+        flag1 = 1;
     }
+    int i = 1;
     if(ll < rr)
     {
-        ka = queryx(tp -> s[ll] ->L,tp -> s[ll] ->R, aa, bb, tp, ll);//lefmost point
-        int i = 1;
-        while (ll < rr)
+        kl = queryx(tp -> s[ll] ->L,tp -> s[ll] ->R, aa, tp -> s[ll] ->R, tp, ll);//lefmost point
+        while (ll < rr - 1)
         {
-            queryx(tp -> s[ll+i] ->L,tp -> s[ll+i] ->R, aa, bb, tp, ll);
+            k -> s[i] = queryx(tp -> s[ll+1] ->L,tp -> s[ll+1] ->R, tp -> s[ll+1] ->L, tp -> s[ll+1] ->R, tp, ll+1);
+            ll++;
             i++;
         }
-        kb = queryx(tp -> s[rr] ->L,tp -> s[rr] ->R, aa, bb, tp, rr);//rightmost point
+        kr = queryx(tp -> s[rr] ->L,tp -> s[rr] ->R, tp -> s[rr] ->L, bb, tp, rr);//rightmost point
+        flag2 = 1;
         
+    }
+    if (flag1 == 1)
+    {
+        res = ka;
+    }
+    else if(flag2 == 1)
+    {
+        res1 = MergeBranchInQ(kl, k, kr, i);
+        res -> sum = res1 -> sum;
+        res -> lmaxi = res1 -> lmaxi;
+        res -> rmaxi = res1 -> rmaxi;
+        res -> maxi = res1 -> maxi;
     }
     return res;
 }
-Node *query(int l,int r,int aa,int bb, Node *tp,int num)
-{
-    tp = tp -> s[num];
-    Node *ka,*kb,*res;
-    res = (Node *)malloc(sizeof(Node));
-    if(aa <= l && bb >= r)
-       return tp;
-    //int seg = (r - l)/4;
-    int flag = r - l;//区间个数
-    int flag1 = 0;   //区间合并标志
-    int flag2 = 0;
-    int flag4 = 0;
-    int snum1 = -1;
-    int snum2 = -1;
-    Node *p = NULL;
-    if(flag == 3 || flag > 4)
-    {// 四个区间
-        snum1 = IntervalNum(l, r, 4, aa);  //区间指针
-        snum2 = IntervalNum(l, r, 4, bb);
-        if(snum1 != snum2 && snum1 > 0 && snum2 > 0)
-        {
-            int m = snum2 - snum1;//相隔的区间数
-            p = ChangePointer(tp, snum1);
-            ka = query(p -> L, p -> R, aa, bb, tp, snum1);
-            p = ChangePointer(tp, snum2);
-            kb = query(p -> L, p -> R, p -> L, bb, tp, snum2);
-            if(m == 1 ) flag1 = flag2 = 1;
-            if(m == 2) {flag4 = 2;}
-            if(m == 3) {flag4 = 3;}
-        }
-        else if(snum1 > 0)
-        {
-            p = ChangePointer(tp, snum1);
-            ka = query(p -> L, p -> R, aa, bb, tp, snum1);
-            flag1 = 0;
-        }
-        else if(snum2 > 0)
-        {
-            p = ChangePointer(tp, snum2);
-            ka = query(p -> L, p -> R, aa, bb, tp, snum2);
-            flag1 = 0;
-        }
-
-        
-        
-    }
-    if(flag == 2 || flag ==4)
-    {//三个区间
-        snum1 = IntervalNum(l, r, 3, aa);
-        snum2 = IntervalNum(l, r, 3, bb);
-        //Node *p = NULL;
-        if(snum1 != snum2 && snum1 > 0 && snum2 > 0)
-        {
-            int m = snum2 - snum1;//相隔的区间数
-            p = ChangePointer(tp, snum1);
-            ka = query(p -> L, p -> R, aa, bb, tp, snum1);
-            p = ChangePointer(tp, snum2);
-            kb = query(p -> L, p -> R, p -> L, bb, tp, snum2);
-            if(m == 1 ) flag1 = flag2 = 1;
-            if(m == 2) {flag4 = 2;}
-            //if(m == 3) {flag4 = 3;}
-        }
-        else if(snum1 > 0)
-        {
-            p = ChangePointer(tp, snum1);
-            ka = query(p -> L, p -> R, aa, bb, tp, snum1);
-            flag1 = 0;
-        }
-        else if(snum2 > 0)
-        {
-            p = ChangePointer(tp, snum2);
-            ka = query(p -> L, p -> R, aa, bb, tp, snum2);
-            flag1 = 0;
-        }
-        
-    }
-    if(flag == 1)
-    {//两个区间
-        snum1 = IntervalNum(l, r, 2, aa);
-        snum2 = IntervalNum(l, r, 2, bb);
-        //Node *p = NULL;
-        if(snum1 != snum2 && snum1 > 0 && snum2 > 0)
-        {
-            int m = snum2 - snum1;//相隔的区间数
-            p = ChangePointer(tp, snum1);
-            ka = query(p -> L, p -> R, aa, bb, tp, snum1);
-            p = ChangePointer(tp, snum2);
-            kb = query(p -> L, p -> R, p -> L, bb, tp, snum2);
-            if(m == 1 ) flag1 = flag2 = 1;
-            //if(m == 2) {flag4 = 2;}
-            //if(m == 3) {flag4 = 3;}
-        }
-        else if(snum1 > 0)
-        {
-            p = ChangePointer(tp, snum1);
-            ka = query(p -> L, p -> R, aa, bb, tp, snum1);
-            flag1 = 0;
-        }
-        else if(snum2 > 0)
-        {
-            p = ChangePointer(tp, snum2);
-            ka = query(p -> L, p -> R, aa, bb, tp, snum2);
-            flag1 = 0;
-        }
-
-    }
-    ////////////////////////////////////////////////////////////
-    //区间合并计算
-    if(flag1 && flag2)
-    {
-        res->sum = ka->sum + kb->sum;
-        res->lmaxi = max(ka->lmaxi,ka->sum+kb->lmaxi);
-        res->rmaxi = max(kb->rmaxi,kb->sum+ka->rmaxi);
-        res->maxi = max(ka->rmaxi+kb->lmaxi,max(ka->maxi,kb->maxi));
-    }
-    else if (flag4 == 2)
-    {
-        p = ChangePointer(tp, snum1 + 1);
-        res->sum = ka->sum + p->sum;
-        res->lmaxi = max(ka->lmaxi,ka->sum+p->lmaxi);
-        res->rmaxi = max(p->rmaxi,p->sum+ka->rmaxi);
-        res->maxi = max(ka->rmaxi+p->lmaxi,max(ka->maxi,p->maxi));
-        
-        int psum=res->sum ,pmaxi=res->maxi,plmaxi=res->lmaxi,prmaxi=res->rmaxi;
-        res->sum = psum + kb->sum;
-        res->lmaxi = max(plmaxi,psum+kb->lmaxi);
-        res->rmaxi = max(kb->rmaxi,kb->sum+prmaxi);
-        res->maxi = max(prmaxi+kb->lmaxi,max(pmaxi,kb->maxi));
-
-    }
-    else if (flag4 == 3)
-    {
-        p = ChangePointer(tp, snum1 + 1);
-        res->sum = ka->sum + p->sum;
-        res->lmaxi = max(ka->lmaxi,ka->sum+p->lmaxi);
-        res->rmaxi = max(p->rmaxi,p->sum+ka->rmaxi);
-        res->maxi = max(ka->rmaxi+p->lmaxi,max(ka->maxi,p->maxi));
-        
-        int psum=res->sum ,pmaxi=res->maxi,plmaxi=res->lmaxi,prmaxi=res->rmaxi;
-        p = ChangePointer(tp, snum1 + 2);
-        res->sum = psum + p->sum;
-        res->lmaxi = max(plmaxi,psum+p->lmaxi);
-        res->rmaxi = max(p->rmaxi,p->sum+prmaxi);
-        res->maxi = max(prmaxi+p->lmaxi,max(pmaxi,p->maxi));
-        
-        psum=res->sum ,pmaxi=res->maxi,plmaxi=res->lmaxi,prmaxi=res->rmaxi;
-        res->sum = psum + kb->sum;
-        res->lmaxi = max(plmaxi,psum+kb->lmaxi);
-        res->rmaxi = max(kb->rmaxi,kb->sum+prmaxi);
-        res->maxi = max(prmaxi+kb->lmaxi,max(pmaxi,kb->maxi));
-
-    }
-    else
-    {
-        if(flag1==0)  //left
-            res = ka;
-        else
-            res = kb;
-    }
-    return res;
-}
+//Node *query(int l,int r,int aa,int bb, Node *tp,int num)
+//{
+//    tp = tp -> s[num];
+//    Node *ka,*kb,*res;
+//    res = (Node *)malloc(sizeof(Node));
+//    if(aa <= l && bb >= r)
+//       return tp;
+//    //int seg = (r - l)/4;
+//    int flag = r - l;//区间个数
+//    int flag1 = 0;   //区间合并标志
+//    int flag2 = 0;
+//    int flag4 = 0;
+//    int snum1 = -1;
+//    int snum2 = -1;
+//    Node *p = NULL;
+//    if(flag == 3 || flag > 4)
+//    {// 四个区间
+//        snum1 = IntervalNum(l, r, 4, aa);  //区间指针
+//        snum2 = IntervalNum(l, r, 4, bb);
+//        if(snum1 != snum2 && snum1 > 0 && snum2 > 0)
+//        {
+//            int m = snum2 - snum1;//相隔的区间数
+//            p = ChangePointer(tp, snum1);
+//            ka = query(p -> L, p -> R, aa, bb, tp, snum1);
+//            p = ChangePointer(tp, snum2);
+//            kb = query(p -> L, p -> R, p -> L, bb, tp, snum2);
+//            if(m == 1 ) flag1 = flag2 = 1;
+//            if(m == 2) {flag4 = 2;}
+//            if(m == 3) {flag4 = 3;}
+//        }
+//        else if(snum1 > 0)
+//        {
+//            p = ChangePointer(tp, snum1);
+//            ka = query(p -> L, p -> R, aa, bb, tp, snum1);
+//            flag1 = 0;
+//        }
+//        else if(snum2 > 0)
+//        {
+//            p = ChangePointer(tp, snum2);
+//            ka = query(p -> L, p -> R, aa, bb, tp, snum2);
+//            flag1 = 0;
+//        }
+//
+//        
+//        
+//    }
+//    if(flag == 2 || flag ==4)
+//    {//三个区间
+//        snum1 = IntervalNum(l, r, 3, aa);
+//        snum2 = IntervalNum(l, r, 3, bb);
+//        //Node *p = NULL;
+//        if(snum1 != snum2 && snum1 > 0 && snum2 > 0)
+//        {
+//            int m = snum2 - snum1;//相隔的区间数
+//            p = ChangePointer(tp, snum1);
+//            ka = query(p -> L, p -> R, aa, bb, tp, snum1);
+//            p = ChangePointer(tp, snum2);
+//            kb = query(p -> L, p -> R, p -> L, bb, tp, snum2);
+//            if(m == 1 ) flag1 = flag2 = 1;
+//            if(m == 2) {flag4 = 2;}
+//            //if(m == 3) {flag4 = 3;}
+//        }
+//        else if(snum1 > 0)
+//        {
+//            p = ChangePointer(tp, snum1);
+//            ka = query(p -> L, p -> R, aa, bb, tp, snum1);
+//            flag1 = 0;
+//        }
+//        else if(snum2 > 0)
+//        {
+//            p = ChangePointer(tp, snum2);
+//            ka = query(p -> L, p -> R, aa, bb, tp, snum2);
+//            flag1 = 0;
+//        }
+//        
+//    }
+//    if(flag == 1)
+//    {//两个区间
+//        snum1 = IntervalNum(l, r, 2, aa);
+//        snum2 = IntervalNum(l, r, 2, bb);
+//        //Node *p = NULL;
+//        if(snum1 != snum2 && snum1 > 0 && snum2 > 0)
+//        {
+//            int m = snum2 - snum1;//相隔的区间数
+//            p = ChangePointer(tp, snum1);
+//            ka = query(p -> L, p -> R, aa, bb, tp, snum1);
+//            p = ChangePointer(tp, snum2);
+//            kb = query(p -> L, p -> R, p -> L, bb, tp, snum2);
+//            if(m == 1 ) flag1 = flag2 = 1;
+//            //if(m == 2) {flag4 = 2;}
+//            //if(m == 3) {flag4 = 3;}
+//        }
+//        else if(snum1 > 0)
+//        {
+//            p = ChangePointer(tp, snum1);
+//            ka = query(p -> L, p -> R, aa, bb, tp, snum1);
+//            flag1 = 0;
+//        }
+//        else if(snum2 > 0)
+//        {
+//            p = ChangePointer(tp, snum2);
+//            ka = query(p -> L, p -> R, aa, bb, tp, snum2);
+//            flag1 = 0;
+//        }
+//
+//    }
+//    ////////////////////////////////////////////////////////////
+//    //区间合并计算
+//    if(flag1 && flag2)
+//    {
+//        res->sum = ka->sum + kb->sum;
+//        res->lmaxi = max(ka->lmaxi,ka->sum+kb->lmaxi);
+//        res->rmaxi = max(kb->rmaxi,kb->sum+ka->rmaxi);
+//        res->maxi = max(ka->rmaxi+kb->lmaxi,max(ka->maxi,kb->maxi));
+//    }
+//    else if (flag4 == 2)
+//    {
+//        p = ChangePointer(tp, snum1 + 1);
+//        res->sum = ka->sum + p->sum;
+//        res->lmaxi = max(ka->lmaxi,ka->sum+p->lmaxi);
+//        res->rmaxi = max(p->rmaxi,p->sum+ka->rmaxi);
+//        res->maxi = max(ka->rmaxi+p->lmaxi,max(ka->maxi,p->maxi));
+//        
+//        int psum=res->sum ,pmaxi=res->maxi,plmaxi=res->lmaxi,prmaxi=res->rmaxi;
+//        res->sum = psum + kb->sum;
+//        res->lmaxi = max(plmaxi,psum+kb->lmaxi);
+//        res->rmaxi = max(kb->rmaxi,kb->sum+prmaxi);
+//        res->maxi = max(prmaxi+kb->lmaxi,max(pmaxi,kb->maxi));
+//
+//    }
+//    else if (flag4 == 3)
+//    {
+//        p = ChangePointer(tp, snum1 + 1);
+//        res->sum = ka->sum + p->sum;
+//        res->lmaxi = max(ka->lmaxi,ka->sum+p->lmaxi);
+//        res->rmaxi = max(p->rmaxi,p->sum+ka->rmaxi);
+//        res->maxi = max(ka->rmaxi+p->lmaxi,max(ka->maxi,p->maxi));
+//        
+//        int psum=res->sum ,pmaxi=res->maxi,plmaxi=res->lmaxi,prmaxi=res->rmaxi;
+//        p = ChangePointer(tp, snum1 + 2);
+//        res->sum = psum + p->sum;
+//        res->lmaxi = max(plmaxi,psum+p->lmaxi);
+//        res->rmaxi = max(p->rmaxi,p->sum+prmaxi);
+//        res->maxi = max(prmaxi+p->lmaxi,max(pmaxi,p->maxi));
+//        
+//        psum=res->sum ,pmaxi=res->maxi,plmaxi=res->lmaxi,prmaxi=res->rmaxi;
+//        res->sum = psum + kb->sum;
+//        res->lmaxi = max(plmaxi,psum+kb->lmaxi);
+//        res->rmaxi = max(kb->rmaxi,kb->sum+prmaxi);
+//        res->maxi = max(prmaxi+kb->lmaxi,max(pmaxi,kb->maxi));
+//
+//    }
+//    else
+//    {
+//        if(flag1==0)  //left
+//            res = ka;
+//        else
+//            res = kb;
+//    }
+//    return res;
+//}
 
 
 //void LevelTra3(Node* root)
@@ -499,55 +601,55 @@ Node *query(int l,int r,int aa,int bb, Node *tp,int num)
 //    cout<<endl;
 //}
 
-void LevelTra4(Node* root)
-{
-    if (!root)
-    {
-        return;
-    }
-    vector<Node*> vec;
-    vec.push_back(root);
-    int cur=0;
-    int last=1;
-    while (cur<vec.size())
-    {
-        last=vec.size();
-        while (cur<last)
-        {
-            cout<<vec[cur]->sum<<"  ";
-            if (vec[cur]->s1)
-            {
-                vec.push_back(vec[cur]->s1);
-            }
-            if (vec[cur]->s2)
-            {
-                vec.push_back(vec[cur]->s2);
-            }
-            if (vec[cur]->s3)
-            {
-                vec.push_back(vec[cur]->s3);
-            }
-            if (vec[cur]->s4)
-            {
-                vec.push_back(vec[cur]->s4);
-            }
-
-            cur++;
-        }
-        cout<<endl;
-    }
-}
+//void LevelTra4(Node* root)
+//{
+//    if (!root)
+//    {
+//        return;
+//    }
+//    vector<Node*> vec;
+//    vec.push_back(root);
+//    int cur=0;
+//    int last=1;
+//    while (cur<vec.size())
+//    {
+//        last=vec.size();
+//        while (cur<last)
+//        {
+//            cout<<vec[cur]->sum<<"  ";
+//            if (vec[cur]->s1)
+//            {
+//                vec.push_back(vec[cur]->s1);
+//            }
+//            if (vec[cur]->s2)
+//            {
+//                vec.push_back(vec[cur]->s2);
+//            }
+//            if (vec[cur]->s3)
+//            {
+//                vec.push_back(vec[cur]->s3);
+//            }
+//            if (vec[cur]->s4)
+//            {
+//                vec.push_back(vec[cur]->s4);
+//            }
+//
+//            cur++;
+//        }
+//        cout<<endl;
+//    }
+//}
 Node *RootNode = (Node *)malloc(sizeof(Node)); //申请新节点;
 
 int main(int argc, const char * argv[]) {
     // insert code here...
     //int n = IntervalNum(0, 25, 4, 25);
     float *p;
-    p = ReadDate("/Users/zph/XcodeProject/编程珠玑/SegTreeMaxSub/SegTreeMaxSub/100.txt");
+    p = ReadDate("/Users/zph/XcodeProject/编程珠玑/SegTreeMaxSub/SegTreeMaxSub/data.txt");
     printf("一共%d个数据\n",i);
-    CreateTree(1 , 100, RootNode, p);
-    LevelTra4(RootNode);
-    //Node *res = query(1, i, 1,19000  , RootNode,0);
-    //printf("maxsub sum is :%d\n",res->maxi);
+    CreateTree(1, i, RootNode, p);
+    //LevelTra4(RootNode);
+    Node *res = queryx(1, i, 234, 9876, RootNode, 0);
+    printf("maxsub sum is :%d\n",res->maxi);
     return 0;
 }
