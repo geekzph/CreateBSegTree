@@ -13,16 +13,16 @@
 #include <stdlib.h>
 using namespace std;
 
-const int branchnum = 10; //branch number
-typedef struct Node{    /* 定义单链表结点类型 */
-    int L;
-    int R;
+const int kBranchNum = 4; //branch number
+typedef struct Node{    //Node structure
+    int l;
+    int r;
     int maxi,lmaxi,rmaxi,sum;
-    struct Node *s[branchnum+1];
+    struct Node *s[kBranchNum+1];
 } Node;
 
 typedef struct Kp{    //define pointer structer
-    struct Node *s[branchnum+1];
+    struct Node *s[kBranchNum+1];
 } Kp;
 
 int i = 0;
@@ -32,24 +32,23 @@ float * ReadDate(char filename[])
     float r[20000];
     FILE *fp;
     double result = 0.0;
-    char StrLine[8];             //每行最大读取的字符数
-    if((fp = fopen(filename,"r")) == NULL) //判断文件是否存在及可读
+    char strline[8];                        //each line's max-character
+    if((fp = fopen(filename,"r")) == NULL)
     {
         printf("error!");
         return NULL;
     }
     while (!feof(fp))
     {
-        fgets(StrLine,12,fp);  //读取一行
-        //printf("%s", StrLine);
-        result=atof(StrLine);
+        fgets(strline,12,fp);  //read a line
+        //printf("%s", strline);
+        result=atof(strline);
         i++;
         r[i] =result;
         
         
     }
-    fclose(fp);
-    //关闭文件
+    fclose(fp);              //close file
     printf("success\n");
     return r;
 }
@@ -59,8 +58,8 @@ int max(int a, int b)
     return a>b?a:b;
 }
 
-//合并多个分支
-void pushup(Node *p,int n)
+//merge multi-branch in CreateTree
+void MergeBranchInC(Node *p,int n)
 {
     int psum=0,pmaxi=0,plmaxi=0,prmaxi=0;
     for (int i = 1; i < n; i++)
@@ -87,34 +86,7 @@ void pushup(Node *p,int n)
     
 }
 
-//merge branch in createtree function
-Node *MergeBranch(Node *p,int n)
-{
-    int psum=0,pmaxi=0,plmaxi=0,prmaxi=0;
-    for (int i = 1; i < n; i++)
-    {
-        if (i == 1)
-        {
-            p->sum = p->s[1]->sum + p->s[2]->sum;
-            p->maxi = max(p->s[1]->maxi,max(p->s[2]->maxi,p->s[1]->rmaxi+p->s[2]->lmaxi));
-            p->lmaxi = max(p->s[1]->lmaxi,p->s[1]->sum + p->s[2]->lmaxi);
-            p->rmaxi = max(p->s[2]->rmaxi,p->s[2]->sum + p->s[1]->rmaxi);
-            psum=p->sum ,pmaxi=p->maxi,plmaxi=p->lmaxi,prmaxi=p->rmaxi;
-        }
-        else if(i > 1)
-        {
-            int m = i + 1;
-            p->sum = psum + p->s[m]->sum;
-            p->maxi = max(pmaxi,max(p->s[m]->maxi,prmaxi+p->s[m]->lmaxi));
-            p->lmaxi = max(plmaxi,psum + p->s[m]->lmaxi);
-            p->rmaxi = max(p->s[m]->rmaxi,p->s[m]->sum + prmaxi);
-            psum=p->sum ,pmaxi=p->maxi,plmaxi=p->lmaxi,prmaxi=p->rmaxi;
-        }
-        
-    }
-    return p;
-    
-}
+
 
 //merge branch in query funcution
 //query funtion's merge procedure is different from createtree's merge procedure
@@ -163,103 +135,61 @@ Node *MergeBranchInQ(Node *p, Kp *k, Node *q, int n)
     
 }
 
-//创建多分支线段树
+//create multi-branch tree
 void CreateTree(int l ,int r , Node *tp, float x[])
 {
     int i = 1;
     int ll = l;
     int rr = r;
-    tp->L = l;
-    tp->R = r;
-    int seg = (r - l) / branchnum;//段长
+    tp->l = l;
+    tp->r = r;
+    int seg = (r - l) / kBranchNum;   //segment length
     int flag = 0;
     
     if(ll == rr)
     {
-        tp->L = ll;
-        tp->R = rr;
+        tp->l = ll;
+        tp->r = rr;
         tp->maxi = tp->lmaxi = tp->rmaxi = tp->sum = x[ll];
         return;
     }
     
-    for (i ; i < branchnum + 1; ++i)
+    for (i ; i < kBranchNum + 1; ++i)
     {
-        seg = (r - l) / branchnum;
+        seg = (r - l) / kBranchNum;
         if (ll > r || flag == 1)
         {
             break;
         }
         else if (ll + seg > r && ll < r + 1)
         {
-            tp->s[i] = (Node *)malloc(sizeof(Node));  //申请节点
-            CreateTree(ll, r,tp->s[i],x);              //创建节点
+            tp->s[i] = (Node *)malloc(sizeof(Node));  //apply for node
+            CreateTree(ll, r,tp->s[i],x);             //create node
             flag = 1;                                 //quit for
         }
         else
         {
-            tp->s[i] = (Node *)malloc(sizeof(Node));  //申请节点
-            CreateTree(ll, ll + seg,tp->s[i],x);        //创建节点
+            tp->s[i] = (Node *)malloc(sizeof(Node));   //apply for node
+            CreateTree(ll, ll + seg,tp->s[i],x);       //create node
             ll = ll + seg + 1;
             rr = ll + seg ;
         }
         
     }
-    pushup(tp, i - 1);
+    MergeBranchInC(tp, i - 1);
 }
 
-int IntervalNum(int l,int r,int n,int num)
-{
-    int seg = (r - l)/4;
-    if(n==4)
-    {
-        if(num >l - 1 && num<l + seg + 1)
-            return 1;
-        else if(num > l + seg && num<l + 2 * seg + 2)
-            return 2;
-        else if(num > l + 2 * seg + 1 && num<l + 3 * seg + 3)
-            return 3;
-        else if(num > l + 3 * seg + 2)
-            return 4;
-        else
-            return -1;
-    }
-    else if(n==3)
-    {
-        if(num >l - 1 && num<l + seg + 1)
-            return 1;
-        else if(num > l + seg && num<l + 2 * seg + 2)
-            return 2;
-        else if(num > l + 2 * seg + 1 && num<l + 3 * seg + 3)
-            return 3;
-        else
-            return -1;
-
-        
-    }
-    else if(n == 2)
-    {
-        if(num >l - 1 && num<l + seg + 1)
-            return 1;
-        else if(num > l + seg && num<l + 2 * seg + 2)
-            return 2;
-        else
-            return -1;
-    }
-    else
-        return -1;
-}
-
-int InterNum(int x,Node *p)
+int IntervalNum(int x,Node *p)
 {
     int m = 0;
-    for(int i = 1;p->s[i]!=NULL && i <= branchnum; i++)
+    for(int i = 1;p->s[i]!=NULL && i <= kBranchNum; i++)
     {
-        if (x >= p->s[i]->L && x <= p->s[i]->R) m = i;
+        if (x >= p->s[i]->l && x <= p->s[i]->r) m = i;
     }
     return m;
 }
 
-Node *queryx(int l,int r,int aa,int bb, Node *tp,int num)
+Node *QuerySeg(int l,int r,int aa,int bb, Node *tp,int num)
 {
     int flag1 = 0;
     int flag2 = 0;
@@ -271,27 +201,27 @@ Node *queryx(int l,int r,int aa,int bb, Node *tp,int num)
         return tp;
     int ll = 0;
     int rr = 0;
-    ll = InterNum(aa, tp);
-    rr = InterNum(bb, tp);
+    ll = IntervalNum(aa, tp);
+    rr = IntervalNum(bb, tp);
     if(ll == rr)
     {
-        if(tp -> s[rr] -> R < bb)
-            ka = queryx(tp -> s[ll] ->L,tp -> s[rr]->R, aa, tp -> s[rr]->R, tp, ll);
+        if(tp -> s[rr] -> r < bb)
+            ka = QuerySeg(tp -> s[ll] ->r,tp -> s[rr]->r, aa, tp -> s[rr]->r, tp, ll);
         else
-            ka = queryx(tp -> s[ll] ->L,tp -> s[rr]->R, aa, bb, tp, ll);
+            ka = QuerySeg(tp -> s[ll] ->l,tp -> s[rr]->r, aa, bb, tp, ll);
         flag1 = 1;
     }
     int i = 1;
     if(ll < rr)
     {
-        kl = queryx(tp -> s[ll] ->L,tp -> s[ll] ->R, aa, tp -> s[ll] ->R, tp, ll);//lefmost point
+        kl = QuerySeg(tp -> s[ll] ->l,tp -> s[ll] ->r, aa, tp -> s[ll] ->r, tp, ll);//lefmost point
         while (ll < rr - 1)
         {
-            k -> s[i] = queryx(tp -> s[ll+1] ->L,tp -> s[ll+1] ->R, tp -> s[ll+1] ->L, tp -> s[ll+1] ->R, tp, ll+1);
+            k -> s[i] = QuerySeg(tp -> s[ll+1] ->l,tp -> s[ll+1] ->r, tp -> s[ll+1] ->l, tp -> s[ll+1] ->r, tp, ll+1);
             ll++;
             i++;
         }
-        kr = queryx(tp -> s[rr] ->L,tp -> s[rr] ->R, tp -> s[rr] ->L, bb, tp, rr);//rightmost point
+        kr = QuerySeg(tp -> s[rr] ->l,tp -> s[rr] ->r, tp -> s[rr] ->l, bb, tp, rr);//rightmost point
         flag2 = 1;
         
     }
@@ -374,17 +304,17 @@ Node *queryx(int l,int r,int aa,int bb, Node *tp,int num)
 //        cout<<endl;
 //    }
 //}
-Node *RootNode = (Node *)malloc(sizeof(Node)); //申请新节点;
+Node *rootnode = (Node *)malloc(sizeof(Node)); //apply for root node
 
 int main(int argc, const char * argv[]) {
     // insert code here...
     //int n = IntervalNum(0, 25, 4, 25);
     float *p;
     p = ReadDate("/Users/zph/XcodeProject/编程珠玑/SegTreeMaxSub/SegTreeMaxSub/data.txt");
-    printf("一共%d个数据\n",i);
-    CreateTree(1, i, RootNode, p);
+    printf("total data is %d\n",i);
+    CreateTree(1, i, rootnode, p);
     //LevelTra4(RootNode);
-    Node *res = queryx(1, i, 234, 9876, RootNode, 0);
+    Node *res = QuerySeg(1, i, 123, 1000, rootnode, 0);
     printf("maxsub sum is :%d\n",res->maxi);
     return 0;
 }
