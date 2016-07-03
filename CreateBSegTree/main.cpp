@@ -13,7 +13,7 @@
 #include <stdlib.h>
 using namespace std;
 
-const int kBranchNum = 4;                   //const branch number
+const int kBranchNum = 5;                   //const branch number
 typedef struct Node{                         //Node structure
     int l;
     int r;
@@ -243,70 +243,35 @@ Node *QuerySeg(int l,int r,int aa,int bb, Node *tp,int num)
     return res;
 }
 
-//void LevelTra3(Node* root)
-//{
-//    if (!root)
-//    {
-//        return;
-//    }
-//    
-//    queue<int> m_queue;
-//    m_queue.push(root);
-//    while (!m_queue.empty())
-//    {
-//        Node* cur=m_queue.front();
-//        cout<<cur->m_data<<"  ";
-//        m_queue.pop();
-//        if (cur->m_lChild)
-//        {
-//            m_queue.push(cur->m_lChild);
-//        }
-//        if (cur->m_rChild)
-//        {
-//            m_queue.push(cur->m_rChild);
-//        }
-//    }
-//    cout<<endl;
-//}
-
-//void LevelTra4(Node* root)
-//{
-//    if (!root)
-//    {
-//        return;
-//    }
-//    vector<Node*> vec;
-//    vec.push_back(root);
-//    int cur=0;
-//    int last=1;
-//    while (cur<vec.size())
-//    {
-//        last=vec.size();
-//        while (cur<last)
-//        {
-//            cout<<vec[cur]->sum<<"  ";
-//            if (vec[cur]->s1)
-//            {
-//                vec.push_back(vec[cur]->s1);
-//            }
-//            if (vec[cur]->s2)
-//            {
-//                vec.push_back(vec[cur]->s2);
-//            }
-//            if (vec[cur]->s3)
-//            {
-//                vec.push_back(vec[cur]->s3);
-//            }
-//            if (vec[cur]->s4)
-//            {
-//                vec.push_back(vec[cur]->s4);
-//            }
-//
-//            cur++;
-//        }
-//        cout<<endl;
-//    }
-//}
+//level traversal
+void LevelTra(Node* root)
+{
+    if (!root)
+    {
+        return;
+    }
+    vector<Node*> vec;
+    vec.push_back(root);
+    int cur=0;
+    int last=1;
+    Node *p = root;
+    while (cur<vec.size())
+    {
+        last=vec.size();
+        while (cur<last)
+        {
+            cout<<vec[cur]->l<<"  ";
+            for(int i = 1;i <= p->branch; i++)
+            {
+                vec.push_back(vec[cur]->s[i]);
+                //p = vec[cur];
+            }
+            cur++;
+            p = vec[cur];
+        }
+        cout<<endl;
+    }
+}
 
 
 Node *rootnode = (Node *)malloc(sizeof(Node)); //apply for root node
@@ -314,9 +279,9 @@ int main(int argc, const char * argv[]) {
     float *p;
     p = ReadDate("/Users/zph/XcodeProject/编程珠玑/SegTreeMaxSub/SegTreeMaxSub/100.txt");
     printf("total data is %d\n",g_data_num);
-    CreateTree(1, 25, rootnode, p);
-    //LevelTra4(RootNode);
-    Node *res = QuerySeg(1, 25, 3, 6, rootnode, 0);
+    CreateTree(1, 100, rootnode, p);
+    LevelTra(rootnode);
+    Node *res = QuerySeg(1, 100, 3, 6, rootnode, 0);
     printf("maxsub sum is :%d\n",res->maxi);
     return 0;
 }
