@@ -13,7 +13,7 @@
 #include <stdlib.h>
 using namespace std;
 
-const int kBranchNum = 5;                   //const branch number
+const int kBranchNum = 10;                   //const branch number
 typedef struct Node{                         //Node structure
     int l;
     int r;
@@ -155,7 +155,7 @@ void CreateTree(int l ,int r , Node *tp, float x[])
         return;
     }
     
-    for (i ; i < kBranchNum + 1; ++i)
+    for (i = 1 ; i < kBranchNum + 1; i++)
     {
         seg = (r - l) / kBranchNum;
         if (ll > r || flag == 1)
@@ -200,6 +200,9 @@ Node *QuerySeg(int l,int r,int aa,int bb, Node *tp,int num)
     Node *ka, *kl, *kr, *res, *res1;
     Kp *k = (Kp *)malloc(sizeof(Kp));     //multi-branch's pointer
     res = (Node *)malloc(sizeof(Node));
+    ka = (Node *)malloc(sizeof(Node));
+    kl = (Node *)malloc(sizeof(Node));
+    kr = (Node *)malloc(sizeof(Node));
     if(aa <= l && bb >= r)
         return tp;
     int ll = 0;
@@ -257,7 +260,7 @@ void LevelTra(Node* root)
     Node *p = root;
     while (cur<vec.size())
     {
-        last=vec.size();
+        last=int(vec.size());
         while (cur<last)
         {
             cout<<vec[cur]->l<<"  ";
@@ -281,7 +284,7 @@ int main(int argc, const char * argv[]) {
     printf("total data is %d\n",g_data_num);
     CreateTree(1, 100, rootnode, p);
     LevelTra(rootnode);
-    Node *res = QuerySeg(1, 100, 3, 6, rootnode, 0);
+    Node *res = QuerySeg(1, 100, 6, 100, rootnode, 0);
     printf("maxsub sum is :%d\n",res->maxi);
     return 0;
 }
