@@ -7,20 +7,35 @@
 //
 
 #include <iostream>
+#include <ostream>
+#include <fstream>
 #include <stdio.h>
-#include "vector"
+#include <vector>
 #include <time.h>
 #include <stdlib.h>
+
 using namespace std;
 
-const int kBranchNum = 10;                   //const branch number
+const int kBranchNum = 4;                   //const branch number
 typedef struct Node{                         //Node structure
+    int sequence;
     int l;
     int r;
     int branch;
     int maxi,lmaxi,rmaxi,sum;
+    int p[kBranchNum+1];
     struct Node *s[kBranchNum+1];
+    
 } Node;
+
+typedef struct DiskNode{                         //Node structure
+    int l;
+    int r;
+    int branch;
+    int maxi,lmaxi,rmaxi,sum;
+    int p[kBranchNum+1];
+} DiskNode;
+
 
 typedef struct Kp{                          //pointer structer
     struct Node *s[kBranchNum+1];
@@ -49,7 +64,7 @@ float * ReadDate(char filename[])
         
     }
     fclose(fp);                             //close file
-    printf("success\n");
+    printf("read data file successed\n");
     return r;
 }
 
@@ -246,7 +261,46 @@ Node *QuerySeg(int l,int r,int aa,int bb, Node *tp,int num)
     return res;
 }
 
-//level traversal
+////level traversal
+//void LevelTra(Node* root)
+//{
+//    if (!root)
+//    {
+//        return;
+//    }
+//    Node *indexnode;
+//    int nodeszie = sizeof(DiskNode);
+//    ofstream outfile("index.dat",ios::out|ios::binary);  //create index file
+//    if(!outfile)
+//        cout << "error! can't create file" << endl;
+//    //outfile.write((char*)indexnode, sizeof(Node)*10);
+//    vector<Node*> vec;
+//    vec.push_back(root);
+//    int cur=0;
+//    int last=1;
+//    Node *p = root;
+//    while (cur<vec.size())
+//    {
+//        last=int(vec.size());
+//        while (cur<last)
+//        {
+//            cout<<vec[cur]->l<<"  ";
+//            outfile.seekp(nodeszie*cur,ios::beg);
+//            char writendoe = vec[cur]->l+vec[cur]->r+vec[cur]->branch+vec[cur]->maxi+vec[cur]->lmaxi+vec[cur]->rmaxi+vec[cur]->sum;
+//            outfile.write((char*)writendoe, sizeof(DiskNode));
+//            outfile.write();
+//            for(int i = 1;i <= p->branch; i++)
+//            {
+//                vec.push_back(vec[cur]->s[i]);
+//                //p = vec[cur];
+//            }
+//            cur++;
+//            p = vec[cur];
+//        }
+//        cout<<endl;
+//    }
+//}
+
 void LevelTra(Node* root)
 {
     if (!root)
@@ -255,6 +309,7 @@ void LevelTra(Node* root)
     }
     vector<Node*> vec;
     vec.push_back(root);
+    
     int cur=0;
     int last=1;
     Node *p = root;
@@ -264,6 +319,7 @@ void LevelTra(Node* root)
         while (cur<last)
         {
             cout<<vec[cur]->l<<"  ";
+            vec[cur] -> sequence = cur;
             for(int i = 1;i <= p->branch; i++)
             {
                 vec.push_back(vec[cur]->s[i]);
@@ -274,17 +330,89 @@ void LevelTra(Node* root)
         }
         cout<<endl;
     }
+    
+    cur = 0;
+    last = 1;
+    p =root;
+    while (cur<vec.size())
+    {
+        last=int(vec.size());
+        while (cur<last)
+        {
+            for(int i = 1;i <= p->branch; i++)
+            {
+                vec[cur] -> p[i] = vec[cur] -> s[i] -> sequence * sizeof(Node);
+                vec.push_back(vec[cur]->s[i]);
+            }
+            cur++;
+            p = vec[cur];
+        }
+        cout<<endl;
+    }
 }
 
+
+void WriteIndexFile(Node *rootnode)
+{
+    fstream file;
+    file.open("test.dat", ios::out | ios::trunc | ios::binary);  //create index file
+    if(!file)
+        cout << "error! can't create file" << endl;
+    
+    DiskNode *disknode =(DiskNode *)malloc(sizeof(DiskNode));
+    vector<Node*> vec;
+    vec.push_back(rootnode);
+    
+    int cur=0;
+    int last=1;
+    int nodesize = sizeof(Node);
+    Node *p = rootnode;
+    while (cur<vec.size())
+    {
+        last=int(vec.size());
+        while (cur<last)
+        {
+            cout<<vec[cur]->l<<"  ";
+            disknode =(DiskNode *)malloc(sizeof(DiskNode));
+            disknode -> l = vec[cur] -> l;
+            disknode -> r = vec[cur] -> r;
+            disknode -> branch = vec[cur] -> branch;
+            disknode -> maxi = vec[cur] -> maxi;
+            disknode -> lmaxi = vec[cur] -> lmaxi;
+            disknode -> rmaxi = vec[cur] -> rmaxi;
+            disknode -> sum = vec[cur] -> sum;
+            //disknode -> l = vec[cur] -> l;
+            //disknode -> l = vec[cur] -> l;
+            //disknode -> l = vec[cur] -> l;
+            //Node *disknode = vec[cur];
+            //outfile.seekp(sizeof(DiskNode)*cur);
+            //file.seekp(sizeof(DiskNode)*cur, ios::beg);
+            file.write((char*)&disknode, sizeof(DiskNode));
+            file.seekp(0, ios::end);
+            free(disknode);
+            for(int i = 1;i <= p->branch; i++)
+            {
+                vec.push_back(vec[cur]->s[i]);
+            }
+            cur++;
+            p = vec[cur];
+        }
+        cout<<endl;
+    }
+    file.seekp(0,ios::end);
+    file.close();
+}
 
 Node *rootnode = (Node *)malloc(sizeof(Node)); //apply for root node
 int main(int argc, const char * argv[]) {
     float *p;
     p = ReadDate("/Users/zph/XcodeProject/编程珠玑/SegTreeMaxSub/SegTreeMaxSub/100.txt");
     printf("total data is %d\n",g_data_num);
-    CreateTree(1, 100, rootnode, p);
+    CreateTree(1, 16, rootnode, p);
     LevelTra(rootnode);
-    Node *res = QuerySeg(1, 100, 6, 100, rootnode, 0);
+    WriteIndexFile(rootnode);
+    Node *res = QuerySeg(1, 3, 1, 3, rootnode, 0);
     printf("maxsub sum is :%d\n",res->maxi);
+    free(rootnode);
     return 0;
 }
